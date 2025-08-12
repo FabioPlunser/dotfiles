@@ -1,11 +1,12 @@
-source ~/.zsh/zsh-snap/znap.zsh
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
-#if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-#  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-#fi
+eval $(keychain --eval --quiet id_rsa)
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
 
+export DISPLAY=:0
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
@@ -80,8 +81,6 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
 	git
-	zsh-syntax-highlighting
-	zsh-autosuggestions
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -111,23 +110,29 @@ source $ZSH/oh-my-zsh.sh
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias personal="cd ~/Nextcloud/personal"
-alias uni="cd ~/Nextcloud/Uni/"
-alias g="git"
-alias gs="git status"
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+# source ~/powerlevel10k/powerlevel10k.zsh-theme
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+export XDG_CONFIG_HOME="$HOME/.config"
+
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-source /Users/fabioplunser/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
-[ -f "/Users/fabioplunser/.ghcup/env" ] && source "/Users/fabioplunser/.ghcup/env" # ghcup-envexport PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+export PATH="$PATH:/opt/nvim-linux64/bin"
 
-function cdProject() {
-    local dir=$(~/.config/scripts/projectFuzzyFind)
-    if [[ -n $dir ]]; then
-        cd "$dir"
-        clear
-    fi
-}
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# bun completions
+[ -s "/home/fabio/.bun/_bun" ] && source "/home/fabio/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+export PATH="$HOME/.local/bin:$PATH"
+eval "$(zoxide init zsh)"
 
 function find_and_cd() {
   local dir
@@ -136,48 +141,55 @@ function find_and_cd() {
 }
 
 
-bindkey -s ^f "~/.config/scripts/tmux-sessionizer\n"
-bindkey -s ^p "cdProject\n"
-bindkey -s ^d "find_and_cd\n"
 
-# pnpm
-export PNPM_HOME="/Users/fabioplunser/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# pnpm end
-source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
-source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+bindkey -s ^f "find_and_cd\n"
 
-export PATH="/opt/homebrew/opt/qt@5/bin:$PATH"
-export PYENV_ROOT="$HOME/.pyenv"
-command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
-eval "$(pyenv init --path)"
 
-# bun completions
-[ -s "/Users/fabioplunser/.bun/_bun" ] && source "/Users/fabioplunser/.bun/_bun"
+# Custom widget for FZF history search and execute
+fzf_history_execute_widget() {
+  local selected_command
+  # Store current buffer and cursor position in case of cancellation
+  local original_buffer=$BUFFER
+  local original_cursor=$CURSOR
 
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
-export PATH="/opt/homebrew/opt/icu4c/bin:$PATH"
-export PATH="/opt/homebrew/opt/icu4c/sbin:$PATH"
-export PATH="/opt/homebrew/opt/php@7.4/bin:$PATH"
-export PATH="/opt/homebrew/opt/php@7.4/sbin:$PATH"
-export PATH="/opt/homebrew/opt/php@8.1/bin:$PATH"
-export PATH="/opt/homebrew/opt/php@8.1/sbin:$PATH"
-export PATH="/opt/homebrew/opt/php@8.1/bin:$PATH"
-export PATH="/opt/homebrew/opt/php@8.1/sbin:$PATH"
+  # Use fc to list history (newest first with -r, no numbers with -n)
+  # Pipe to fzf.
+  # --query "$LBUFFER" pre-populates fzf search with what's already typed to the left of the cursor.
+  # --height, --border, --tac are fzf options for appearance and order.
+  # --tac shows recent commands at the top (alternative to fc -r)
+  selected_command=$(fc -l -n 1 | fzf --height 40% --border --tac --prompt="Execute History: " --query="$LBUFFER")
 
-export NVM_DIR="$HOME/.config/nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+  if [[ -n "$selected_command" ]]; then
+    # If a command was selected (FZF didn't exit with error/ESC)
+    BUFFER="$selected_command" # Put selected command into the buffer
+    CURSOR=${#BUFFER}          # Move cursor to the end of the selected command
+    zle accept-line            # Execute the command (like pressing Enter)
+  else
+    # If FZF was cancelled (e.g., by pressing ESC), restore the original buffer and cursor
+    BUFFER=$original_buffer
+    CURSOR=$original_cursor
+    # A little nudge to ensure the display updates correctly after restoring
+    zle send-invisible
+  fi
+  # Ensure the prompt and buffer are redrawn correctly
+  zle redisplay
+}
 
-export PATH="/opt/homebrew/opt/php@7.4/bin:$PATH"
-export PATH="/opt/homebrew/opt/php@7.4/sbin:$PATH"
+# Create a new ZLE (Zsh Line Editor) widget from the function
+zle -N fzf_history_execute_widget
 
-autoload -U +X bashcompinit && bashcompinit
-complete -o nospace -C /opt/homebrew/bin/terraform terraform
+# Bind CTRL+H to the new widget
+# '^H' represents CTRL+H
+# WARNING: This will override the default behavior of CTRL+H (often backspace)
+bindkey '^H' fzf_history_execute_widget
+
+
+alias wip='git add . && git commit -m "wip" && git push'
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
+alias gp='git push'
+
+alias bunw='/mnt/c/Users/f.plunser/.bun/bin/bun.exe'
+alias bunxw='/mnt/c/Users/f.plunser/.bun/bin/bunx.exe'
+alias cargo='/mnt/c/Users/f.plunser/.cargo/bin/cargo.exe'

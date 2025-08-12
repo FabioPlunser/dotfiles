@@ -163,6 +163,8 @@ vim.opt.scrolloff = 10
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
+vim.keymap.set('n', '<leader>e', vim.cmd.Ex, { desc = 'Open Ex' })
+
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
@@ -504,7 +506,6 @@ require('lazy').setup({
       --
       -- If you're wondering about lsp vs treesitter, you can check out the wonderfully
       -- and elegantly composed help section, `:help lsp-vs-treesitter`
-
       --  This function gets run when an LSP attaches to a particular buffer.
       --    That is to say, every time a new file is opened that is associated with
       --    an lsp (for example, opening `main.rs` is associated with `rust_analyzer`) this
@@ -671,6 +672,33 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
         --
+        --
+        --
+        --
+        intelephense = {
+          settings = {
+            environment = {
+              phpVersion = '7.4.33',
+            },
+          },
+        },
+
+        twiggy_language_server = {
+          capabilities = capabilities, -- Make sure 'capabilities' is defined elsewhere in your config
+          filetypes = { 'twig', 'html.twig' },
+          root_dir = vim.loop.cwd(),
+          settings = {
+            twiggy = {
+              diagnostics = {
+                twigCsFixer = true,
+              },
+              workspaceDirectory = vim.fn.getcwd(),
+              symfonyConsolePath = 'bin/console',
+              phpExecutable = '/usr/bin/php7.4',
+              framework = 'symfony', -- Or "craft", "twig", or "ignore"
+            },
+          },
+        },
 
         lua_ls = {
           -- cmd = { ... },
@@ -704,6 +732,16 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'intelephense',
+        'lua-language-server',
+        'svelte-language-server',
+        'html-lsp',
+        'css-lsp',
+        'json-lsp',
+        'eslint',
+        'yaml-language-server',
+        'bash-language-server',
+        'tailwindcss-language-server',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
