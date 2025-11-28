@@ -81,6 +81,7 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
 	git
+	zsh-vi-mode
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -193,3 +194,10 @@ alias gp='git push'
 alias bunw='/mnt/c/Users/f.plunser/.bun/bin/bun.exe'
 alias bunxw='/mnt/c/Users/f.plunser/.bun/bin/bunx.exe'
 alias cargo='/mnt/c/Users/f.plunser/.cargo/bin/cargo.exe'
+alias lg='lazygit'
+
+# opencode
+export PATH=/Users/fabioplunser/.opencode/bin:$PATH
+export PATH="/usr/local/bin:$PATH"
+export PATH="/opt/homebrew/bin:$PATH"
+export PATH="/Library/TeX/texbin:$PATH"
