@@ -28,12 +28,20 @@ foreach ($pkg in @(@{ cmd = 'git'; id = 'Git.Git' }, @{ cmd = 'chezmoi'; id = 't
   }
 }
 
+# Non-interactive use (CI, agents): set DOTFILES_GIT_NAME and DOTFILES_GIT_EMAIL
+# to skip the prompts, and DOTFILES_NONINTERACTIVE=1 to never wait for input.
+$initArgs = @('init', '--source', $dotfiles, '--apply')
+if ($env:DOTFILES_GIT_NAME -and $env:DOTFILES_GIT_EMAIL) {
+  $initArgs += @('--promptString', "Git user name=$($env:DOTFILES_GIT_NAME),Git email address=$($env:DOTFILES_GIT_EMAIL)")
+}
+if ($env:DOTFILES_NONINTERACTIVE -eq '1') { $initArgs += @('--no-tty', '--force') }
+
 if (Test-Path (Join-Path $dotfiles '.git')) {
   Write-Host "==> Using existing repo at $dotfiles"
-  chezmoi init --source $dotfiles --apply
+  & chezmoi @initArgs
 } else {
   Write-Host "==> Cloning $repo into $dotfiles"
-  chezmoi init --source $dotfiles --apply $repo
+  & chezmoi @initArgs $repo
 }
 
 Write-Host ''

@@ -10,6 +10,11 @@ for z in /bin/zsh /usr/bin/zsh "$(command -v zsh 2>/dev/null)"; do
 done
 [ -z "$zsh_path" ] && { echo "WARN: zsh not found, login shell unchanged"; exit 0; }
 
+if [ "${DOTFILES_NONINTERACTIVE:-0}" = 1 ]; then
+  echo "NOTE: non-interactive run, login shell unchanged; run: chsh -s $zsh_path"
+  exit 0
+fi
+
 grep -qx "$zsh_path" /etc/shells || echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
 echo "==> Changing login shell to $zsh_path"
 chsh -s "$zsh_path" || echo "WARN: chsh failed; run: chsh -s $zsh_path"

@@ -3,7 +3,12 @@
 # Linux and WSL2. Re-runs whenever .chezmoidata/packages.yaml changes: {{ .packages | toJson | sha256sum }}
 set -uo pipefail
 
-as_root() { if [ "$(id -u)" -eq 0 ]; then "$@"; else sudo "$@"; fi; }
+# DOTFILES_NONINTERACTIVE=1 uses `sudo -n`, which fails instead of asking for a password.
+as_root() {
+  if [ "$(id -u)" -eq 0 ]; then "$@"
+  elif [ "${DOTFILES_NONINTERACTIVE:-0}" = 1 ]; then sudo -n "$@"
+  else sudo "$@"; fi
+}
 
 echo "==> Installing system prerequisites"
 if command -v apt-get >/dev/null 2>&1; then

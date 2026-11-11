@@ -29,12 +29,22 @@ if ! command -v chezmoi >/dev/null 2>&1; then
   export PATH="$HOME/.local/bin:$PATH"
 fi
 
+# Non-interactive use (CI, agents): set DOTFILES_GIT_NAME and DOTFILES_GIT_EMAIL
+# to skip the prompts, and DOTFILES_NONINTERACTIVE=1 to never wait for input.
+init_args=(--source "$DOTFILES" --apply)
+if [ -n "${DOTFILES_GIT_NAME:-}" ] && [ -n "${DOTFILES_GIT_EMAIL:-}" ]; then
+  init_args+=(--promptString "Git user name=$DOTFILES_GIT_NAME,Git email address=$DOTFILES_GIT_EMAIL")
+fi
+if [ "${DOTFILES_NONINTERACTIVE:-0}" = 1 ]; then
+  init_args+=(--no-tty --force)
+fi
+
 if [ -d "$DOTFILES/.git" ]; then
   echo "==> Using existing repo at $DOTFILES"
-  chezmoi init --source "$DOTFILES" --apply
+  chezmoi init "${init_args[@]}"
 else
   echo "==> Cloning $REPO into $DOTFILES"
-  chezmoi init --source "$DOTFILES" --apply "$REPO"
+  chezmoi init "${init_args[@]}" "$REPO"
 fi
 
 echo
