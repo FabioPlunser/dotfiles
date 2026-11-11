@@ -65,6 +65,9 @@ Adding a package: put it in `home/.chezmoidata/packages.yaml` and run `chezmoi a
 
 ## Notes
 
+- **Corporate networks / TLS inspection (WSL):** if HTTPS fails with `self-signed certificate in certificate chain`,
+  `install.sh` copies the Windows trusted root CAs into the WSL trust store (asks for sudo) and points
+  Homebrew/Python/Node/uv at the system CA bundle. Native Windows git uses the Windows store (`http.sslBackend=schannel`).
 - GlazeWM/Zebar apps themselves aren't installed (the config expects the dev builds in `~/Applications`).
   On a fresh Mac, load the agents once with
   `launchctl load ~/Library/LaunchAgents/io.glzr.zebar-wake.plist ~/Library/LaunchAgents/io.glzr.glazewm-login.plist`.

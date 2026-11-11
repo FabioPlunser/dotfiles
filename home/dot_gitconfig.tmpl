@@ -8,6 +8,11 @@
 [user]
 	name = {{ .name }}
 	email = {{ .email }}
+{{- if eq .chezmoi.os "windows" }}
+[http]
+	# Use the Windows certificate store (trusts corporate TLS-inspection CAs)
+	sslBackend = schannel
+{{- end }}
 [credential "https://github.com"]
 	helper =
 	helper = !{{ $gh }} auth git-credential

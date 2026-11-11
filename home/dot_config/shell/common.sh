@@ -44,6 +44,19 @@ fi
 path_prepend "$HOME/.local/bin"
 export PATH
 
+# ------------------------------------------------------------ CA bundle ---
+# Linux/WSL: make tools with their own CA bundle (Homebrew OpenSSL, Python,
+# Node, uv) use the system store, which holds any imported corporate root CA.
+if [ "$DOTFILES_OS" = linux ] || [ "$DOTFILES_OS" = wsl ]; then
+  for _bundle in /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt; do
+    if [ -f "$_bundle" ]; then
+      export SSL_CERT_FILE="$_bundle" NODE_EXTRA_CA_CERTS="$_bundle" REQUESTS_CA_BUNDLE="$_bundle"
+      break
+    fi
+  done
+  unset _bundle
+fi
+
 # ---------------------------------------------------------------- general ---
 # On native Windows, Neovim reads %LOCALAPPDATA%\nvim; setting XDG_CONFIG_HOME
 # there would point it somewhere else.

@@ -37,6 +37,12 @@ passwordless sudo (or root); otherwise it prints an error and the run continues 
 ask the user to provide it through a secure prompt or have them run the installer themselves. Never put the password
 on the command line.
 
+**TLS-inspecting proxies (corporate networks):** when curl gets exit code 60 (`self-signed certificate in certificate
+chain`), `install.sh` imports the Windows trusted root CAs into the Linux trust store on WSL (via `powershell.exe`,
+needs sudo) and exports `SSL_CERT_FILE`, `NODE_EXTRA_CA_CERTS` and `REQUESTS_CA_BUNDLE` (also set in `common.sh`). On plain
+Linux it stops with instructions; the root CA has to come from the user's IT department. Never work around TLS errors
+with `curl -k`, `GIT_SSL_NO_VERIFY` or similar.
+
 ### Native Windows (PowerShell, no admin)
 
 ```powershell
