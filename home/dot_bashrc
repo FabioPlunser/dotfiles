@@ -1,0 +1,30 @@
+# ~/.bashrc for Git Bash on native Windows. Managed by chezmoi.
+# (macOS/Linux/WSL use zsh, see ~/.zshrc.) Local overrides go in ~/.bashrc.local.
+
+[[ $- != *i* ]] && return
+
+source "$HOME/.config/shell/common.sh"
+
+# Reuse a single ssh-agent across Git Bash windows.
+_agent_env="$HOME/.ssh/agent.env"
+_agent_load() { [ -f "$_agent_env" ] && . "$_agent_env" >/dev/null; }
+_agent_load
+ssh-add -l >/dev/null 2>&1
+if [ $? -eq 2 ]; then # no agent reachable
+  (umask 077; ssh-agent >"$_agent_env")
+  _agent_load
+  [ -f "$HOME/.ssh/id_ed25519" ] && ssh-add "$HOME/.ssh/id_ed25519"
+fi
+unset _agent_env
+unset -f _agent_load
+
+HISTSIZE=50000
+HISTFILESIZE=100000
+HISTCONTROL=ignoreboth:erasedups
+shopt -s histappend
+
+command -v fzf >/dev/null 2>&1 && eval "$(fzf --bash 2>/dev/null)"
+command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init bash)"
+[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
+
+[ -f "$HOME/.bashrc.local" ] && . "$HOME/.bashrc.local"

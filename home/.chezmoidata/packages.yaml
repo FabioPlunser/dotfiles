@@ -1,0 +1,54 @@
+# Packages installed by .chezmoiscripts/run_onchange_before_10-install-packages-*.
+# Edit this list and run `chezmoi apply`; the install script re-runs automatically.
+packages:
+  # Homebrew formulae, macOS and Linux/WSL2 (Homebrew on Linux)
+  brew:
+    - git
+    - curl
+    - zsh
+    - tmux
+    - neovim
+    - fzf
+    - zoxide
+    - ripgrep
+    - fd
+    - lazygit
+    - gh
+    - keychain
+    - btop
+    - uv
+    - chezmoi
+
+  # macOS only
+  brew_darwin:
+    - blueutil      # zebar bluetooth widget
+    - sleepwatcher  # restarts GlazeWM/Zebar on wake
+  casks_darwin:
+    - ghostty
+    - font-hack-nerd-font
+
+  # Minimal system packages needed before Homebrew can run on Linux/WSL2
+  linux_prereqs:
+    apt: [build-essential, procps, curl, file, git, zsh, unzip]
+    pacman: [base-devel, procps-ng, curl, file, git, zsh, unzip]
+    dnf: [gcc, make, procps-ng, curl, file, git, zsh, unzip]
+
+  # Native Windows (winget IDs)
+  winget:
+    - Git.Git
+    - twpayne.chezmoi
+    - Neovim.Neovim
+    - junegunn.fzf
+    - ajeetdsouza.zoxide
+    - BurntSushi.ripgrep.MSVC
+    - sharkdp.fd
+    - JesseDuffield.lazygit
+    - GitHub.cli
+    - astral-sh.uv
+    - zig.zig            # C compiler for nvim-treesitter
+    - ezwinports.make    # telescope-fzf-native build
+    - OpenJS.NodeJS.LTS
+    - Oven-sh.Bun
+    - Rustlang.Rustup
+    - DEVCOM.JetBrainsMonoNerdFont
+    - Microsoft.WindowsTerminal

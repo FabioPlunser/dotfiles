@@ -1,0 +1,19 @@
+{{- /* name/email are asked once per machine by `chezmoi init` and kept out of the public repo */ -}}
+{{- $gh := "gh" -}}
+{{- if eq .chezmoi.os "darwin" -}}
+{{-   $gh = ternary "/opt/homebrew/bin/gh" "/usr/local/bin/gh" (eq .chezmoi.arch "arm64") -}}
+{{- else if eq .chezmoi.os "linux" -}}
+{{-   $gh = "/home/linuxbrew/.linuxbrew/bin/gh" -}}
+{{- end -}}
+[user]
+	name = {{ .name }}
+	email = {{ .email }}
+[credential "https://github.com"]
+	helper =
+	helper = !{{ $gh }} auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !{{ $gh }} auth git-credential
+[include]
+	# machine-specific overrides (not tracked)
+	path = ~/.gitconfig.local

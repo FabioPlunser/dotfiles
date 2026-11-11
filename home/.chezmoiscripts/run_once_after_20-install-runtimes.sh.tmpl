@@ -1,0 +1,23 @@
+{{ if ne .chezmoi.os "windows" -}}
+#!/usr/bin/env bash
+# Rust, Node (nvm) and Bun on macOS/Linux/WSL2. Installers are told not to edit
+# shell rc files: ~/.config/shell/common.sh already puts them on PATH.
+set -uo pipefail
+
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+if ! command -v cargo >/dev/null 2>&1; then
+  echo "==> Installing Rust (rustup)"
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+fi
+
+if [ ! -s "$HOME/.nvm/nvm.sh" ]; then
+  echo "==> Installing nvm + Node LTS"
+  curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | PROFILE=/dev/null bash
+  . "$HOME/.nvm/nvm.sh" && nvm install --lts
+fi
+
+if [ ! -x "$HOME/.bun/bin/bun" ] && ! command -v bun >/dev/null 2>&1; then
+  echo "==> Installing Bun"
+  curl -fsSL https://bun.sh/install | SHELL=/bin/sh bash
+fi
+{{ end -}}

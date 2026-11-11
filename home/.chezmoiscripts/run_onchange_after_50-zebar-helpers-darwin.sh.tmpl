@@ -1,0 +1,15 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# Compile the Zebar Swift helpers (wifi, bluetooth, kblayout, screenlocked).
+# sources: {{ range glob (joinPath .chezmoi.sourceDir "dot_glzr/zebar/bin/*.swift") }}{{ include . | sha256sum | trunc 12 }} {{ end }}
+set -uo pipefail
+command -v swiftc >/dev/null 2>&1 || { echo "WARN: swiftc missing (xcode-select --install); Zebar helpers not built"; exit 0; }
+cd "$HOME/.glzr/zebar/bin" || exit 0
+for src in *.swift; do
+  bin="${src%.swift}"
+  if [ ! -x "$bin" ] || [ "$src" -nt "$bin" ]; then
+    echo "==> Building zebar helper: $bin"
+    swiftc -O "$src" -o "$bin" || echo "WARN: failed to build $bin"
+  fi
+done
+{{ end -}}
