@@ -1,0 +1,16 @@
+{{ if ne .chezmoi.os "windows" -}}
+#!/usr/bin/env bash
+# Make zsh the login shell (macOS/Linux/WSL2).
+set -uo pipefail
+[ "$(basename "${SHELL:-}")" = zsh ] && exit 0
+
+zsh_path=""
+for z in /bin/zsh /usr/bin/zsh "$(command -v zsh 2>/dev/null)"; do
+  [ -n "$z" ] && [ -x "$z" ] && { zsh_path=$z; break; }
+done
+[ -z "$zsh_path" ] && { echo "WARN: zsh not found, login shell unchanged"; exit 0; }
+
+grep -qx "$zsh_path" /etc/shells || echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
+echo "==> Changing login shell to $zsh_path"
+chsh -s "$zsh_path" || echo "WARN: chsh failed; run: chsh -s $zsh_path"
+{{ end -}}

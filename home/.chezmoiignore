@@ -1,0 +1,29 @@
+{{- /* Paths (relative to $HOME) that chezmoi should NOT manage on this OS */ -}}
+
+{{ if ne .chezmoi.os "darwin" -}}
+# macOS only: GlazeWM + Zebar setup, LaunchAgents
+.glzr
+.glzr/**
+Library
+Library/**
+{{- end }}
+
+{{ if eq .chezmoi.os "windows" -}}
+# Unix only (Windows uses Git Bash + %LOCALAPPDATA%\nvim junction)
+.zshrc
+.zshenv
+.p10k.zsh
+.tmux.conf
+.oh-my-zsh
+.tmux
+.config/nvim
+.config/ghostty
+.config/zed
+.config/zed/**
+{{- else -}}
+# Windows only
+.bashrc
+.bash_profile
+AppData
+AppData/**
+{{- end }}

@@ -1,0 +1,25 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# Re-runs whenever .chezmoidata/packages.yaml changes: {{ .packages | toJson | sha256sum }}
+set -uo pipefail
+
+if ! command -v brew >/dev/null 2>&1; then
+  for b in /opt/homebrew/bin/brew /usr/local/bin/brew; do [ -x "$b" ] && eval "$("$b" shellenv)" && break; done
+fi
+if ! command -v brew >/dev/null 2>&1; then
+  echo "==> Installing Homebrew"
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  for b in /opt/homebrew/bin/brew /usr/local/bin/brew; do [ -x "$b" ] && eval "$("$b" shellenv)" && break; done
+fi
+
+echo "==> Installing Homebrew formulae"
+brew install --quiet {{ concat .packages.brew .packages.brew_darwin | join " " }} \
+  || echo "WARN: some formulae failed to install"
+
+echo "==> Installing Homebrew casks"
+for cask in {{ .packages.casks_darwin | join " " }}; do
+  brew list --cask "$cask" >/dev/null 2>&1 && continue
+  # --adopt takes over an app that was installed by hand (e.g. from a .dmg)
+  brew install --cask --adopt --quiet "$cask" || echo "WARN: cask $cask failed (installed manually?)"
+done
+{{ end -}}

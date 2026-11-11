@@ -1,0 +1,19 @@
+{{- /* Rendered once per machine by `chezmoi init` into ~/.config/chezmoi/chezmoi.toml */ -}}
+{{- $name := promptStringOnce . "name" "Git user name" -}}
+{{- $email := promptStringOnce . "email" "Git email address" -}}
+
+# The repo lives in ~/dotfiles (not the chezmoi default ~/.local/share/chezmoi).
+sourceDir = {{ .chezmoi.workingTree | quote }}
+
+{{ if ne .chezmoi.os "windows" -}}
+# Plain files become symlinks into ~/dotfiles/home, so editing ~/.zshrc etc.
+# edits the repo directly. Templates and scripts are still rendered/copied.
+mode = "symlink"
+{{- end }}
+
+[data]
+  name = {{ $name | quote }}
+  email = {{ $email | quote }}
+
+[diff]
+  exclude = ["scripts"]

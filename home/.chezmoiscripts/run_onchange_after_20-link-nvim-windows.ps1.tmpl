@@ -1,0 +1,30 @@
+{{ if eq .chezmoi.os "windows" -}}
+# Point %LOCALAPPDATA%\nvim at the repo's nvim folder with a directory junction
+# (no admin or Developer Mode needed), then sync plugins to lazy-lock.json.
+# nvim lazy-lock: {{ include (joinPath .chezmoi.workingTree "nvim/lazy-lock.json") | sha256sum }}
+$target = '{{ joinPath .chezmoi.workingTree "nvim" | replace "/" "\\" }}'
+$link = Join-Path $env:LOCALAPPDATA 'nvim'
+
+$item = Get-Item $link -Force -ErrorAction SilentlyContinue
+if ($item -and -not ($item.LinkType -eq 'Junction' -and "$($item.Target)" -eq $target)) {
+  if ($item.LinkType) {
+    $item.Delete()
+  } else {
+    $backup = "$link.bak-$(Get-Date -Format yyyyMMddHHmmss)"
+    Write-Host "Backing up existing $link to $backup"
+    Rename-Item $link $backup
+  }
+  $item = $null
+}
+if (-not $item) {
+  New-Item -ItemType Junction -Path $link -Target $target | Out-Null
+  Write-Host "Linked $link -> $target"
+}
+
+$nvim = Get-Command nvim -ErrorAction SilentlyContinue
+if (-not $nvim) { $nvim = Get-Item "$env:ProgramFiles\Neovim\bin\nvim.exe" -ErrorAction SilentlyContinue }
+if ($nvim) {
+  Write-Host '==> Syncing Neovim plugins to lazy-lock.json'
+  & $nvim.Source --headless '+Lazy! restore' +qa *> $null
+}
+{{ end -}}

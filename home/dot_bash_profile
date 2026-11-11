@@ -1,0 +1,3 @@
+# Git Bash starts a login shell, which reads this file and not ~/.bashrc.
+[ -f "$HOME/.profile" ] && . "$HOME/.profile"
+[ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc"

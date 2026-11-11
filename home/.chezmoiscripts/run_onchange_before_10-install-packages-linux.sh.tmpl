@@ -1,0 +1,32 @@
+{{ if eq .chezmoi.os "linux" -}}
+#!/usr/bin/env bash
+# Linux and WSL2. Re-runs whenever .chezmoidata/packages.yaml changes: {{ .packages | toJson | sha256sum }}
+set -uo pipefail
+
+as_root() { if [ "$(id -u)" -eq 0 ]; then "$@"; else sudo "$@"; fi; }
+
+echo "==> Installing system prerequisites"
+if command -v apt-get >/dev/null 2>&1; then
+  as_root apt-get update -y && as_root apt-get install -y {{ .packages.linux_prereqs.apt | join " " }}
+elif command -v pacman >/dev/null 2>&1; then
+  as_root pacman -Sy --needed --noconfirm {{ .packages.linux_prereqs.pacman | join " " }}
+elif command -v dnf >/dev/null 2>&1; then
+  as_root dnf install -y {{ .packages.linux_prereqs.dnf | join " " }}
+else
+  echo "WARN: unknown package manager, install these yourself: build tools, curl, git, zsh, unzip"
+fi
+
+# Homebrew on Linux gives the same, up-to-date tool versions as on macOS
+# (distro neovim/lazygit/zoxide are often too old).
+for b in /home/linuxbrew/.linuxbrew/bin/brew "$HOME/.linuxbrew/bin/brew"; do
+  [ -x "$b" ] && eval "$("$b" shellenv)" && break
+done
+if ! command -v brew >/dev/null 2>&1; then
+  echo "==> Installing Homebrew (Linux)"
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+
+echo "==> Installing Homebrew formulae"
+brew install --quiet {{ .packages.brew | join " " }} || echo "WARN: some formulae failed to install"
+{{ end -}}
